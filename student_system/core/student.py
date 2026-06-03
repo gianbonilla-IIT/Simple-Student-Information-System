@@ -128,3 +128,12 @@ def _update_program_code(old_program_code: str, new_program_code: str) -> None:
         if r["program"] == old_program_code:
             r["program"] = new_program_code
     _save(rows)
+
+
+def _set_program_null(program_code: str) -> None:
+    """Internal function to set all students' program to NULL when program is deleted."""
+    rows = _load()
+    for r in rows:
+        if r["program"] == program_code:
+            r["program"] = ""
+    _save(rows)

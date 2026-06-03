@@ -100,17 +100,27 @@ def _update_college_code(old_college_code: str, new_college_code: str) -> None:
 
 
 def delete(code: str) -> None:
+    """Delete a program and set all students under it to NULL program."""
     from core import student as stu_repo
     code = code.strip().upper()
     rows = _load()
     if not any(r["code"] == code for r in rows):
         raise ValueError(f"Program '{code}' not found.")
-    students = stu_repo.list_all()
-    if any(s["program"] == code for s in students):
-        raise ValueError(
-            f"Cannot delete program '{code}': it is referenced by one or more students."
-        )
+    
+    # Cascade: set all students' program to NULL (empty string)
+    stu_repo._set_program_null(code)
+    
+    # Delete the program
     rows = [r for r in rows if r["code"] != code]
+    _save(rows)
+
+
+def _set_college_null(college_code: str) -> None:
+    """Internal function to set all programs' college to NULL when college is deleted."""
+    rows = _load()
+    for r in rows:
+        if r["college"] == college_code:
+            r["college"] = ""
     _save(rows)
 
 

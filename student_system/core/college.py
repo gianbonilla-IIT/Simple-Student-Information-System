@@ -87,19 +87,18 @@ def update(old_code: str, new_code: str, name: str) -> dict:
 
 
 def delete(code: str) -> None:
-    """Delete a college. Raises ValueError if not found or referenced by programs."""
+    """Delete a college and set all programs under it to NULL college."""
     from core import program as prog_repo  # avoid circular at module level
     code = code.strip().upper()
     rows = _load()
     found = any(r["code"] == code for r in rows)
     if not found:
         raise ValueError(f"College '{code}' not found.")
-    # Referential integrity check
-    programs = prog_repo.list_all()
-    if any(p["college"] == code for p in programs):
-        raise ValueError(
-            f"Cannot delete college '{code}': it is referenced by one or more programs."
-        )
+    
+    # Cascade: set all programs' college to NULL (empty string)
+    prog_repo._set_college_null(code)
+    
+    # Delete the college
     rows = [r for r in rows if r["code"] != code]
     _save(rows)
 

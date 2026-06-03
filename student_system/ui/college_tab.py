@@ -102,13 +102,14 @@ class CollegeTab(tk.Frame):
         if not d["code"]:
             messagebox.showwarning("Warning", "Select a college first.")
             return
-        if not messagebox.askyesno("Confirm", f"Delete college '{d['code']}'?"):
+        msg = f"Delete college '{d['code']}'?\n\nWarning: All programs under this college will have their college set to NULL."
+        if not messagebox.askyesno("Confirm Delete", msg):
             return
         try:
             repo.delete(d["code"])
             self.table.refresh()
             self._clear()
-            messagebox.showinfo("Success", f"College '{d['code']}' deleted.")
+            messagebox.showinfo("Success", f"College '{d['code']}' deleted.\nAll related programs have been updated.")
         except ValueError as e:
             messagebox.showerror("Error", str(e))
 
