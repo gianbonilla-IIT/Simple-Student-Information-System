@@ -125,3 +125,8 @@ class ProgramTab(tk.Frame):
             messagebox.showinfo("Success", f"Program '{d['code']}' deleted.")
         except ValueError as e:
             messagebox.showerror("Error", str(e))
+
+    def refresh(self):
+        """Refresh both table and college options."""
+        self._refresh_college_options()
+        self.table.refresh()

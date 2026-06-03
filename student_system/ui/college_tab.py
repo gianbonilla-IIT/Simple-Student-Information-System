@@ -111,3 +111,7 @@ class CollegeTab(tk.Frame):
             messagebox.showinfo("Success", f"College '{d['code']}' deleted.")
         except ValueError as e:
             messagebox.showerror("Error", str(e))
+
+    def refresh(self):
+        """Refresh the table."""
+        self.table.refresh()

@@ -89,6 +89,11 @@ class StudentTab(tk.Frame):
         codes = [p["code"] for p in programs]
         self._prog_combo["values"] = codes
 
+    def refresh(self):
+        """Refresh both table and program options."""
+        self._refresh_program_options()
+        self.table.refresh()
+
     def _on_row_select(self, row: dict):
         for key, var in self._vars.items():
             var.set(row.get(key, ""))
