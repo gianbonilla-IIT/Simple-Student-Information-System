@@ -7,9 +7,10 @@ ID format: YYYY-NNNN  (e.g. 2024-0001)
 """
 
 import re
+from pathlib import Path
 from core.csv_manager import read_csv, write_csv
 
-FILEPATH = "data/students.csv"
+FILEPATH = str(Path(__file__).parent.parent / "data" / "students.csv")
 FIELDNAMES = ["id", "firstname", "lastname", "program", "year", "gender"]
 ID_PATTERN = re.compile(r"^\d{4}-\d{4}$")
 VALID_GENDERS = {"Male", "Female", "Other"}

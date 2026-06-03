@@ -5,9 +5,10 @@ CRUD + List operations for Program records.
 CSV fields: code, name, college
 """
 
+from pathlib import Path
 from core.csv_manager import read_csv, write_csv
 
-FILEPATH = "data/programs.csv"
+FILEPATH = str(Path(__file__).parent.parent / "data" / "programs.csv")
 FIELDNAMES = ["code", "name", "college"]
 
 
