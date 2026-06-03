@@ -12,6 +12,16 @@ from ui.table_widget import TableWidget
 COLUMNS = ["id", "firstname", "lastname", "program", "year", "gender"]
 
 
+def _load_students_display(**kwargs):
+    """Load students and transform display values for NULL program."""
+    students = repo.list_all(**kwargs)
+    # Transform empty program to "NOT ENROLLED" for display only
+    for s in students:
+        if not s["program"]:
+            s["program"] = "NOT ENROLLED"
+    return students
+
+
 class StudentTab(tk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
@@ -20,7 +30,7 @@ class StudentTab(tk.Frame):
     def _build(self):
         self.table = TableWidget(
             self, columns=COLUMNS,
-            load_fn=repo.list_all,
+            load_fn=_load_students_display,
             on_select=self._on_row_select,
             bg=self["bg"],
         )
@@ -96,7 +106,11 @@ class StudentTab(tk.Frame):
 
     def _on_row_select(self, row: dict):
         for key, var in self._vars.items():
-            var.set(row.get(key, ""))
+            value = row.get(key, "")
+            # Convert display value back to empty for form editing
+            if key == "program" and value == "NOT ENROLLED":
+                value = ""
+            var.set(value)
 
     def _get_form(self):
         return {k: v.get() for k, v in self._vars.items()}

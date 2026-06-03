@@ -12,6 +12,16 @@ from ui.table_widget import TableWidget
 COLUMNS = ["name", "code", "college"]
 
 
+def _load_programs_display(**kwargs):
+    """Load programs and transform display values for NULL college."""
+    programs = repo.list_all(**kwargs)
+    # Transform empty college to "N/A" for display only
+    for p in programs:
+        if not p["college"]:
+            p["college"] = "N/A"
+    return programs
+
+
 class ProgramTab(tk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
@@ -21,7 +31,7 @@ class ProgramTab(tk.Frame):
     def _build(self):
         self.table = TableWidget(
             self, columns=COLUMNS,
-            load_fn=repo.list_all,
+            load_fn=_load_programs_display,
             on_select=self._on_row_select,
             bg=self["bg"],
         )
@@ -78,7 +88,11 @@ class ProgramTab(tk.Frame):
     def _on_row_select(self, row: dict):
         self._original_code = row.get("code", "")  # Store original code
         for key, var in self._vars.items():
-            var.set(row.get(key, ""))
+            value = row.get(key, "")
+            # Convert display value back to empty for form editing
+            if key == "college" and value == "N/A":
+                value = ""
+            var.set(value)
 
     def _get_form(self):
         return {k: v.get() for k, v in self._vars.items()}
