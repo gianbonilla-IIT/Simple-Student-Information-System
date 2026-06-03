@@ -119,3 +119,12 @@ def list_all(sort_by: str = "id", reverse: bool = False,
         sort_by = "id"
     rows.sort(key=lambda r: r[sort_by].lower(), reverse=reverse)
     return rows
+
+
+def _update_program_code(old_program_code: str, new_program_code: str) -> None:
+    """Internal function to cascade program code changes to students."""
+    rows = _load()
+    for r in rows:
+        if r["program"] == old_program_code:
+            r["program"] = new_program_code
+    _save(rows)

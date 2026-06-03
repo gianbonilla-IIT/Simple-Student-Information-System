@@ -15,6 +15,7 @@ COLUMNS = ["name", "code", "college"]
 class ProgramTab(tk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
+        self._original_code = None  # Track the original code when a row is selected
         self._build()
 
     def _build(self):
@@ -75,6 +76,7 @@ class ProgramTab(tk.Frame):
         self._college_combo["values"] = codes
 
     def _on_row_select(self, row: dict):
+        self._original_code = row.get("code", "")  # Store original code
         for key, var in self._vars.items():
             var.set(row.get(key, ""))
 
@@ -82,6 +84,7 @@ class ProgramTab(tk.Frame):
         return {k: v.get() for k, v in self._vars.items()}
 
     def _clear(self):
+        self._original_code = None
         for var in self._vars.values():
             var.set("")
 
@@ -97,9 +100,13 @@ class ProgramTab(tk.Frame):
 
     def _update(self):
         d = self._get_form()
+        if not self._original_code:
+            messagebox.showwarning("Warning", "Select a program first.")
+            return
         try:
-            repo.update(d["code"], d["name"], d["college"])
+            repo.update(self._original_code, d["code"], d["name"], d["college"])
             self.table.refresh()
+            self._original_code = d["code"]  # Update tracking after successful update
             messagebox.showinfo("Success", f"Program '{d['code']}' updated.")
         except ValueError as e:
             messagebox.showerror("Error", str(e))

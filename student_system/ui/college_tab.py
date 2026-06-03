@@ -14,6 +14,7 @@ COLUMNS = ["name", "code"]
 class CollegeTab(tk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
+        self._original_code = None  # Track the original code when a row is selected
         self._build()
 
     def _build(self):
@@ -61,6 +62,7 @@ class CollegeTab(tk.Frame):
             ttk.Button(btn_frame, text=text, command=cmd).pack(side="left", padx=4)
 
     def _on_row_select(self, row: dict):
+        self._original_code = row.get("code", "")  # Store original code
         for key, var in self._vars.items():
             var.set(row.get(key, ""))
 
@@ -68,6 +70,7 @@ class CollegeTab(tk.Frame):
         return {k: v.get() for k, v in self._vars.items()}
 
     def _clear(self):
+        self._original_code = None
         for var in self._vars.values():
             var.set("")
 
@@ -83,9 +86,13 @@ class CollegeTab(tk.Frame):
 
     def _update(self):
         d = self._get_form()
+        if not self._original_code:
+            messagebox.showwarning("Warning", "Select a college first.")
+            return
         try:
-            repo.update(d["code"], d["name"])
+            repo.update(self._original_code, d["code"], d["name"])
             self.table.refresh()
+            self._original_code = d["code"]  # Update tracking after successful update
             messagebox.showinfo("Success", f"College '{d['code']}' updated.")
         except ValueError as e:
             messagebox.showerror("Error", str(e))

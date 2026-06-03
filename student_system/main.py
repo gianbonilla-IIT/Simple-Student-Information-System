@@ -54,6 +54,18 @@ def main():
     notebook.add(program_tab, text="📋  Programs")
     notebook.add(student_tab, text="🎓  Students")
 
+    # Bind tab switch to refresh tables
+    def on_tab_changed(event):
+        selected_tab = notebook.select()
+        if selected_tab == str(college_tab):
+            college_tab.table.refresh()
+        elif selected_tab == str(program_tab):
+            program_tab.table.refresh()
+        elif selected_tab == str(student_tab):
+            student_tab.table.refresh()
+
+    notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+
     root.mainloop()
 
 

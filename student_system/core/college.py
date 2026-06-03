@@ -55,17 +55,35 @@ def read(code: str) -> dict | None:
     return None
 
 
-def update(code: str, name: str) -> dict:
-    """Update college name. Raises ValueError if not found."""
-    code, name = code.strip().upper(), name.strip()
-    _validate(code, name)
+def update(old_code: str, new_code: str, name: str) -> dict:
+    """Update college code and/or name. Cascades code changes to programs. Raises ValueError if not found."""
+    old_code, new_code, name = old_code.strip().upper(), new_code.strip().upper(), name.strip()
+    _validate(new_code, name)
     rows = _load()
-    for r in rows:
-        if r["code"] == code:
-            r["name"] = name
-            _save(rows)
-            return r
-    raise ValueError(f"College '{code}' not found.")
+    
+    # Find the college to update
+    college_idx = None
+    for i, r in enumerate(rows):
+        if r["code"] == old_code:
+            college_idx = i
+            break
+    
+    if college_idx is None:
+        raise ValueError(f"College '{old_code}' not found.")
+    
+    # Check if new code already exists (only if code is changing)
+    if old_code != new_code:
+        if any(r["code"] == new_code for r in rows):
+            raise ValueError(f"College code '{new_code}' already exists.")
+        # Cascade update to programs
+        from core import program as prog_repo
+        prog_repo._update_college_code(old_code, new_code)
+    
+    # Update the college
+    rows[college_idx]["code"] = new_code
+    rows[college_idx]["name"] = name
+    _save(rows)
+    return rows[college_idx]
 
 
 def delete(code: str) -> None:

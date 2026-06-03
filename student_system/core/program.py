@@ -52,20 +52,51 @@ def read(code: str) -> dict | None:
     return None
 
 
-def update(code: str, name: str, college_code: str) -> dict:
+def update(old_code: str, new_code: str, name: str, college_code: str) -> dict:
+    """Update program code and/or details. Cascades code changes to students. Raises ValueError if not found."""
     from core import college as col_repo
-    code, name, college_code = code.strip().upper(), name.strip(), college_code.strip().upper()
-    _validate(code, name, college_code)
+    old_code, new_code, name = old_code.strip().upper(), new_code.strip().upper(), name.strip()
+    college_code = college_code.strip().upper()
+    _validate(new_code, name, college_code)
+    
     if col_repo.read(college_code) is None:
         raise ValueError(f"College '{college_code}' does not exist.")
+    
+    rows = _load()
+    
+    # Find the program to update
+    program_idx = None
+    for i, r in enumerate(rows):
+        if r["code"] == old_code:
+            program_idx = i
+            break
+    
+    if program_idx is None:
+        raise ValueError(f"Program '{old_code}' not found.")
+    
+    # Check if new code already exists (only if code is changing)
+    if old_code != new_code:
+        if any(r["code"] == new_code for r in rows):
+            raise ValueError(f"Program code '{new_code}' already exists.")
+        # Cascade update to students
+        from core import student as stu_repo
+        stu_repo._update_program_code(old_code, new_code)
+    
+    # Update the program
+    rows[program_idx]["code"] = new_code
+    rows[program_idx]["name"] = name
+    rows[program_idx]["college"] = college_code
+    _save(rows)
+    return rows[program_idx]
+
+
+def _update_college_code(old_college_code: str, new_college_code: str) -> None:
+    """Internal function to cascade college code changes to programs."""
     rows = _load()
     for r in rows:
-        if r["code"] == code:
-            r["name"] = name
-            r["college"] = college_code
-            _save(rows)
-            return r
-    raise ValueError(f"Program '{code}' not found.")
+        if r["college"] == old_college_code:
+            r["college"] = new_college_code
+    _save(rows)
 
 
 def delete(code: str) -> None:
